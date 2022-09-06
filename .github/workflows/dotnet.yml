@@ -1,0 +1,53 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+#Añado el uso de artefactos
+    - name: Publish the code
+      run: dotnet publish -c Release -o ${{ env.DOTNET_ROOT }}/webapp
+      working-directory: ./LemoncodeWeb
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: webapp-artifact
+        path: ${{ env.DOTNET_ROOT }}/webapp
+
+  deploy:
+    runs-on: windows-latest
+    needs: [build] #Hay que esperar a que termine el job llamado build
+
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: webapp-artifact
+        path: ${{ env.DOTNET_ROOT }}/webapp
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v1
+      with:        
+        slot-name: 'producction'
+        package: ${{ env.DOTNET_ROOT }}/webapp
+        publish-profile: ${{ secrets.AZUREDEPLOY }}
