@@ -42,8 +42,7 @@ jobs:
       with: # Set Azure credentials secret as an input
         credentials: ${{ secrets.AZUREDEPLOY }}
       env: # Or as an environment variable
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
+        credentials: ${{ secrets.AZUREDEPLOY }}
       
     - name: Download artifact
       uses: actions/download-artifact@v1
